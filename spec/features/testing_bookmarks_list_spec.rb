@@ -1,6 +1,6 @@
 feature "Testing Bookmarks list Title page" do
-  scenario 'Can see the title of the page' do
-    visit '/bookmarks'
-    expect(page).to have_content 'My Bookmarks'
+  scenario 'visiting the homepage shows page title' do
+    visit '/'
+    expect(page).to have_content "Bookmark Manager"
   end
 end
