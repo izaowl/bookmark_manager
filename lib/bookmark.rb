@@ -18,7 +18,6 @@ class Bookmark
     result = connection.exec('SELECT * FROM bookmarks')
     
     result.map do |bookmark|
-
       Bookmark.new(id: bookmark['id'], title: bookmark['title'], url: bookmark['url'])
     end
   end
@@ -42,7 +41,7 @@ class Bookmark
     connection.exec_params("DELETE FROM bookmarks WHERE id = $1", [id])
   end  
 
-  def self.update_title(  title:, id:)
+  def self.update_title(title:, id:, url:)
     if ENV['ENVIRONMENT'] == 'test'
       connection = PG.connect(dbname: 'bookmark_manager_test')
     else
@@ -52,13 +51,26 @@ class Bookmark
     Bookmark.new(id: result[0]['id'], title: result[0]['title'], url: result[0]['url'])
   end
   
-  def self.update_url( url:, id:)
+  def self.update( url:, id:, title:)
     if ENV['ENVIRONMENT'] == 'test'
       connection = PG.connect(dbname: 'bookmark_manager_test')
     else
       connection = PG.connect(dbname: 'bookmark_manager')
     end
-    result = connection.exec_params("UPDATE bookmarks SET url = $1 WHERE id = $2 RETURNING ID, TITLE, URL;", [url,id])
+    result = connection.exec_params(
+      "UPDATE bookmarks SET url = $1, title = $2 WHERE id = $3 RETURNING id, url, title;",
+      [url, title, id]
+    )
+    Bookmark.new(id: result[0]['id'], title: result[0]['title'], url: result[0]['url'])
+  end
+
+  def self.find(id:)
+    if ENV['ENVIRONMENT'] == 'test'
+      connection = PG.connect(dbname: 'bookmark_manager_test')
+    else
+      connection = PG.connect(dbname: 'bookmark_manager')
+    end
+    result = connection.exec_params("SELECT * FROM bookmarks WHERE id = $1;", [id])
     Bookmark.new(id: result[0]['id'], title: result[0]['title'], url: result[0]['url'])
   end
 end
